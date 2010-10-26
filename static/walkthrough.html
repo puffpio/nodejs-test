@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Game anyone test</title>
+    <link href='http://fonts.googleapis.com/css?family=Molengo&subset=latin' rel='stylesheet' type='text/css' />
+    <link href="/css/jquery-ui-1.8.5.custom.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        body { font-family: 'Molengo', arial, serif; }
+        a { text-decoration: none; color:inherit; }
+        #results {list-style-type:none;}
+    </style>
+</head>
+<body>
+    <form id="walkthroughForm" action="#">
+        <div>
+            <span>Enter walkthrough id</span>
+            <input type="text" id="walkthroughId" />
+            <input type="submit" id="go" value="Go" />
+        </div>
+    </form>
+    <div id="resultsContainer">
+        <p id=resultsHeader></p>
+        <ul id="results"></ul>
+    </div>
+
+    <div id="video-modal" style="display: none;">
+    </div>
+
+    <div id="busy-modal" style="display: none;">
+        Getting your vids...
+    </div>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js" type="text/javascript"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type="text/javascript"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var videoModal = $('#video-modal').dialog({
+                width: 1320,
+                height: 780,
+                modal: true,
+                resizable: false,
+                autoOpen: false,
+                close: function (event, ui) { videoModal.empty(); }
+            });
+
+            var busyModal = $('#busy-modal').dialog({
+                width: 250,
+                height: 80,
+                modal: true,
+                draggable: false,
+                resizable: false,
+                autoOpen: false
+            });
+
+            $('input:submit').button();
+
+            $('#walkthroughForm').submit(function (e) {
+                e.preventDefault();
+
+                var id = $('#walkthroughId').val();
+                location.hash = '#' + id;
+
+                var resultsHeader = $('#resultsHeader');
+
+                busyModal.dialog('open');
+                $.getJSON('/walkthrough/' + id + '/high?callback=?', function (videos) {
+                    busyModal.dialog('close');
+                    var results = $('#results').empty();
+                    resultsHeader.text(videos.length + ' videos retrieved.');
+
+
+                    $.each(videos, function () {
+                        var title = $('<p>').text(this.title);
+                        var thumbnail = $('<img>').attr('src', this.image);
+                        var link = $('<a>').attr('href', this.file).append(title).append(thumbnail).data('video', this);
+                        var li = $('<li>').append(link);
+
+                        link.click(function (e) {
+                            var video = $(this).data('video');
+
+                            if (video.file.indexOf('youtube') == -1) {
+                                e.preventDefault();
+
+                                var videoelement = $('<video>').attr('src', video.file).attr('autoplay', 'autoplay').attr('controls', 'controls');
+                                videoModal.empty().append(videoelement);
+                                videoModal.dialog('option', 'title', video.title);
+                                videoModal.dialog('open');
+                            }
+                        });
+                        results.append(li);
+
+                    });
+                });
+            });
+
+            var hash = location.hash;
+
+            if (hash.length > 1) {
+                $('#walkthroughId').val(hash.slice(1));
+                $('#walkthroughForm').submit();
+            }
+        });
+    </script>
+</body>
+</html>
