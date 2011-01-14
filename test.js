@@ -70,6 +70,10 @@ var testSite = {
             res.send('Hello World\n');
         });
 
+        app.get('/walk/walk.html', function (req, res) {
+           res.redirect('http://www.youtube.com/watch?v=oHg5SJYRHA0');
+        });
+
         app.get('/walkthrough/:walkthroughId/:quality', function (req, res) {
             var walkthroughId = parseInt(req.params.walkthroughId);
             var quality = req.params.quality;
